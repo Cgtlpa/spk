@@ -1,0 +1,20 @@
+name: release
+on:
+  push:
+    tags:
+      - "v*"
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo build --release --locked
+      - run: |
+          cp target/release/spk spk-x86_64
+          sha256sum spk-x86_64 | awk '{print $1}' > spk-x86_64.sha256
+      - run: gh release create "${GITHUB_REF#refs/tags/}" spk-x86_64 spk-x86_64.sha256 --title "${GITHUB_REF#refs/tags/}" --notes "spk ${GITHUB_REF#refs/tags/}"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
