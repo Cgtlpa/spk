@@ -9,12 +9,26 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Check out spk sources from SilenLinux
+        uses: actions/checkout@v4
+        with:
+          repository: Cgtlpa/SilenLinux
+          path: SilenLinux
+          sparse-checkout: spk
+          sparse-checkout-cone-mode: false
       - uses: dtolnay/rust-toolchain@stable
-      - run: cargo build --release --locked
+      - name: Check tag matches Cargo.toml version
+        run: |
+          ver="$(sed -n 's/^version = "\(.*\)"$/\1/p' SilenLinux/spk/Cargo.toml | head -n1)"
+          tag="${GITHUB_REF#refs/tags/v}"
+          [ "$ver" = "$tag" ] || { echo "tag v$tag != Cargo.toml $ver"; exit 1; }
+        working-directory: ${{ github.workspace }}
+      - run: cargo build --release
+        working-directory: ${{ github.workspace }}/SilenLinux/spk
       - run: |
-          cp target/release/spk spk-x86_64
+          cp SilenLinux/spk/target/release/spk spk-x86_64
           sha256sum spk-x86_64 | awk '{print $1}' > spk-x86_64.sha256
+        working-directory: ${{ github.workspace }}
       - run: gh release create "${GITHUB_REF#refs/tags/}" spk-x86_64 spk-x86_64.sha256 --title "${GITHUB_REF#refs/tags/}" --notes "spk ${GITHUB_REF#refs/tags/}"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

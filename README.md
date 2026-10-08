@@ -1,8 +1,7 @@
-# spk — Silen Linux package manager (spark)
+# spk releases — Silen Linux package manager (spark)
 
-`spk` installs system packages straight into `/` (kernels, drivers, desktops,
-display managers) and leaf apps isolated with shims, plus automatic
-dependency installs via each manifest's `depends` list.
+This repo holds only release binaries. The source lives in
+[Cgtlpa/SilenLinux](https://github.com/Cgtlpa/SilenLinux) under `spk/`.
 
 ## Install / update
 
@@ -21,21 +20,12 @@ echo "$(curl -sSL https://github.com/Cgtlpa/spk/releases/latest/download/spk-x86
 sudo install -m0755 spk /usr/bin/spk
 ```
 
-## Develop
-
-Canonical source lives in the SilenLinux repo under `spk/`; this repo
-mirrors it for releases. Sync with:
-
-```sh
-cp -r ../SilenLinux/spk/src ../SilenLinux/spk/Cargo.toml ../SilenLinux/spk/Cargo.lock .
-```
-
-Then `cargo check`, `cargo clippy`, `cargo test`.
-
 ## Release
 
-1. Bump `version` in `Cargo.toml` (and in SilenLinux).
-2. Commit, tag `vX.Y.Z`, push the tag — CI builds the release binary
-   and attaches `spk-x86_64` + `spk-x86_64.sha256` to the GitHub release.
+1. Change and test the source in SilenLinux (`cargo check`, `cargo clippy`,
+   `cargo test` in `spk/`), bump `version` in `spk/Cargo.toml`.
+2. Tag `vX.Y.Z` here — CI checks the tag out of SilenLinux's `spk/`,
+   refuses on version mismatch, builds the release binary and attaches
+   `spk-x86_64` + `spk-x86_64.sha256` to the GitHub release.
 3. `spk self-update` picks it up (tag without the `v` is compared
    against `spk --version`).
